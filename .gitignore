@@ -1,0 +1,31 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Python (from py_compile / running micro-bench.py locally)
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Benchmark output (results live in user projects, not the skill repo)
+results/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Shell
+*.log
+
+# Markdown editors / preview
+.obsidian/
+.markdownlintcache
+
+# Local notes that shouldn't ship with the skill
+NOTES.local.md
+scratch/
