@@ -33,11 +33,36 @@ optimization/
 
 ## Install
 
+One-liner (no git required - downloads a tarball and places it in `~/.claude/skills/project-optimizer`):
+
 ```bash
-git clone <this-repo-url> ~/.claude/skills/project-optimizer
+curl -fsSL https://raw.githubusercontent.com/Anugra07/prd_research/main/install.sh | bash
+```
+
+Or, if you prefer git:
+
+```bash
+git clone https://github.com/Anugra07/prd_research.git ~/.claude/skills/project-optimizer
 ```
 
 Claude Code picks up skills under `~/.claude/skills/` automatically.
+
+### Installer options
+
+The installer takes env vars:
+
+- `SKILL_DIR` - install location. Default: `~/.claude/skills/project-optimizer`.
+- `SKILL_REF` - git ref to download. Default: `main`.
+- `SKILL_FORCE=1` - overwrite an existing install without backing it up.
+- `SKIP_DEPS=1` - skip the optional-dependency check.
+
+Example: install into a custom path without the dep check:
+
+```bash
+SKILL_DIR=~/skills/po SKIP_DEPS=1 curl -fsSL https://raw.githubusercontent.com/Anugra07/prd_research/main/install.sh | bash
+```
+
+To update later, re-run the same install command (the previous install is auto-backed-up unless `SKILL_FORCE=1`).
 
 ## How to trigger it
 
