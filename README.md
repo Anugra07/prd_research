@@ -1,10 +1,20 @@
 # project-optimizer
 
-A tiered, source-cited, bias-checked **technical** research skill for Claude Code. It inspects the user's project, researches competitors and prior art, and presents a ranked improvement report **directly in the chat**.
-
-Strictly technical. No business advice, no UX opinions, no marketing. Only performance, architecture, algorithms, stack choices, scalability, code quality, tooling, infrastructure.
+A tiered, source-cited, bias-checked research skill for Claude Code that makes a software product better - **technically, as a business in its market, or both**. It inspects the product, researches competitors and prior art, and presents a ranked improvement report **directly in the chat**.
 
 **It does not write files into your project.** Every finding is returned in the chat. The only file it ever writes is its own `MEMORY.md`, inside the skill's install directory - see [Learning across sessions](#learning-across-sessions).
+
+## Modes
+
+The skill picks a mode from your request (or you can force one):
+
+| Mode | Covers | Trigger examples |
+|---|---|---|
+| **technical** | performance, architecture, algorithms, stack, scalability, infra, tooling, code quality | "optimize this", "make it faster", "scale this", "production-grade review", "how do competitors do this technically" |
+| **business** | product value & UVP, market & competitive positioning, where you stand, growth levers, expansion strategy | "what's our UVP", "how do we position", "where do we stand in the market", "how do we grow", "how do we differentiate", "how do we expand" |
+| **full** | both tracks, plus a unified ranked roadmap showing how tech enables business and vice versa | "understand my product technically and commercially", "take it to the next level" |
+
+Force a mode with "run project-optimizer in business mode" (or technical / full). When a request clearly spans both, it defaults to **full**. The tier system below controls research depth in whichever mode runs.
 
 ## The three tiers
 
@@ -74,11 +84,11 @@ To update later, re-run the same install command. The previous install is backed
 
 Open Claude Code inside (or pointed at) the project you want analyzed and say something like:
 
-- **Tier 1:** "Quick optimization pass on this script."
-- **Tier 2:** "How can I make this service faster?" / "What should I improve here?"
-- **Tier 3:** "Deep technical review." / "What do competitors do, and how can we outperform them?" / "Production-grade review of this system."
+- **Technical:** "Quick optimization pass on this script." / "How can I make this service faster?" / "Deep, production-grade technical review."
+- **Business:** "What's our UVP and where do we stand in the market?" / "How do we differentiate and grow?" / "What are our expansion options?"
+- **Full:** "Understand my product technically and commercially, then tell me how to take it to the next level."
 
-The skill leans toward false negatives - if it doesn't activate, invoke explicitly with "run project-optimizer".
+The skill leans toward false negatives - if it doesn't activate, invoke explicitly with "run project-optimizer" (optionally naming a mode and tier, e.g. "run project-optimizer in full deep mode").
 
 ## Learning across sessions
 
@@ -91,34 +101,29 @@ It stores preferences and corrections, never secrets, credentials, or your code.
 
 ## Staying unbiased
 
-The report is only useful if it's honest, so the skill runs explicit bias guards: it down-weights and flags vendor-authored sources, actively hunts for failure stories and "why we migrated off X" posts (not just success blogs), writes the strongest counter-argument for every recommendation before keeping it, and treats "the current approach is already appropriate" as a valid result rather than manufacturing changes. Recommendations are ranked strictly by `(impact x confidence) / (effort x risk)`, and the four input values are shown so you can audit the ordering yourself.
+The report is only useful if it's honest, so the skill runs explicit bias guards: it down-weights and flags vendor/marketing sources, actively hunts for failure stories and "why we migrated off X" posts (not just success blogs), writes the strongest counter-argument for every recommendation before keeping it, and treats "the current approach/position is already strong" as a valid result rather than manufacturing changes. In business mode it additionally refuses top-down market sizes without a bottom-up check (every market figure is labeled "estimated" with its method), prefers revenue/retention over vanity metrics, and tells you plainly when a UVP is weak or undifferentiated. Recommendations are ranked strictly by `(impact x confidence) / (effort x risk)`, with the four input values shown so you can audit the ordering yourself.
 
-## Workflow (Tier 3)
+## Workflow
 
-The full pipeline:
+After a Phase 0 constraints interview (deeper at Tier 3, and always in business/full mode), the skill runs the track(s) for the detected mode, then synthesizes.
 
-0. **Constraints interview** - 3-5 sharp questions about scale, latency budget, team, infra, non-negotiables.
-1. **Project inspection** - stack-detect, subsystem decomposition, weak points with `file:line` citations.
-2. **Multi-pass competitor research** - discovery, deep read, cross-validation. Per subsystem.
-3. **Fallback research** (in parallel) - arXiv, top-starred repos, official perf docs, conference talks.
-4. **Source quality scoring** - every source tagged S/A/B/C/D. D-only recs flagged "low confidence".
-5. **Quantitative grounding** - every perf claim has a number, or is explicitly marked "qualitative".
-6. **Failure mode + scale analysis** - what breaks at 10x / 100x / 1000x, what competitors do at that scale.
-7. **Synthesis** - recommendations ranked by `(impact x confidence) / (effort x risk)`.
-8. **Future-watch** - emerging tech, deprecation watch.
-9. **Output** - the full report rendered in the chat (sections above), with runnable benchmarks inline as code blocks. No files written to your project.
+**Technical track:** project inspection (stack-detect, subsystem decomposition, weak points with `file:line`) -> multi-pass competitor research (discovery, deep read, cross-validation) -> fallback research (arXiv, top repos, official perf docs, talks) in parallel -> source quality scoring (S/A/B/C/D) -> quantitative grounding (numbers or "qualitative") -> failure-mode/scale analysis (10x/100x/1000x) -> ranked recommendations -> technical future-watch.
 
-Bookending the pipeline: read `MEMORY.md` before Phase 1, append learnings after Phase 9. Tiers 1 and 2 run an abbreviated version of this pipeline and produce a shorter chat report.
+**Business track:** product & value understanding (job-to-be-done, segment, business model, UVP hypothesis) -> market & competitive positioning (incl. the "do nothing" alternative; a positioning map; an honest "where we stand") -> UVP analysis (is the differentiator real and defensible; the sharpest wedge; the gap to best-in-category) -> growth levers (acquisition/activation/retention/monetization, tied to evidence) -> expansion strategy (segments, geos, product lines, platform, partnerships; sequenced now/next/later) -> ranked strategic recommendations.
+
+**Full mode** runs both and adds a **unified ranked roadmap** tagging each item `[Technical]` / `[Business]` / `[Both]` and calling out cross-track dependencies (e.g. "the p99 fix is a prerequisite for the enterprise segment").
+
+Everything is ranked by `(impact x confidence) / (effort x risk)` with inputs shown, rendered in the chat. Bookending the pipeline: read `MEMORY.md` at the start, append learnings at the end. Tiers 1 and 2 run shorter versions and produce a shorter chat report.
 
 ## Hard rules
 
-- **No uncited claims.** Every recommendation cites at least one source from Phase 2 or 3.
-- **No fabricated benchmarks.** If a number isn't sourced, it's marked "estimated" with the math shown.
-- **No bluffing.** If the project is in a domain Claude isn't strong in, that's stated up front in the report.
+- **No uncited claims**, technical or business. Every recommendation cites at least one source.
+- **No fabricated numbers or benchmarks.** Unsourced figures are marked "estimated" with the math shown; market sizes are always "estimated" with their method.
+- **No bluffing.** If the product is in a technical domain or a market Claude isn't strong in, that's stated up front.
 - **No files in your project.** All findings go to the chat; the only file written is the skill's own `MEMORY.md`.
-- **Auditable, unbiased ranking.** Bias guards applied; the four ranking inputs are shown; "no change needed" is a valid result.
+- **Auditable, unbiased ranking.** Bias guards applied; the four ranking inputs are shown; "no change needed / position already strong" is a valid result.
 - **No emojis** in any output.
-- **For Tier 3:** at least one runnable benchmark (inline code block) per high-impact recommendation.
+- **For Tier 3:** at least one runnable benchmark (inline code block) per high-impact technical recommendation, and one measurable experiment per high-impact business recommendation.
 
 ## File tree (this repo)
 
@@ -130,17 +135,20 @@ project-optimizer/
 ├── install.sh                               # no-git tarball installer (preserves MEMORY.md)
 ├── references/
 │   ├── MEMORY.template.md                    # seed for the per-user learning file
-│   ├── research-sources.md                   # curated search starting points per domain
-│   ├── source-quality-rubric.md              # S/A/B/C/D scoring rules
-│   ├── interview-questions.md                # Phase 0 question bank
+│   ├── interview-questions.md                # Phase 0 technical interview
+│   ├── business-interview-questions.md       # Phase 0 business/market interview
+│   ├── research-sources.md                   # technical search starting points per domain
+│   ├── business-research-sources.md          # market/competitor intelligence sources
+│   ├── source-quality-rubric.md              # S/A/B/C/D scoring rules (both tracks)
 │   └── report-templates/                     # chat-section layout guides (not files to save)
-│       ├── OPTIMIZATION_REPORT.md            # Tier 1/2 chat layout
-│       ├── EXECUTIVE_REPORT.md               # Tier 3 top-of-report layout
-│       ├── subsystem.md                      # Tier 3 per-subsystem section
-│       ├── bibliography.md                   # Tier 3 sources section
-│       ├── risk-register.md                  # Tier 3 risks section
-│       ├── failure-modes.md                  # Tier 3 scale-analysis section
-│       └── future-watch.md                   # Tier 3 horizon-scan section
+│       ├── OPTIMIZATION_REPORT.md            # technical Tier 1/2 chat layout
+│       ├── EXECUTIVE_REPORT.md               # technical Tier 3 top-of-report layout
+│       ├── subsystem.md                      # technical Tier 3 per-subsystem section
+│       ├── bibliography.md                   # sources section
+│       ├── risk-register.md                  # technical Tier 3 risks section
+│       ├── failure-modes.md                  # technical Tier 3 scale-analysis section
+│       ├── future-watch.md                   # technical Tier 3 horizon-scan section
+│       └── business-sections.md              # business-track chat layouts + unified roadmap
 └── scripts/
     ├── stack-detect.sh                       # stack and LOC first pass
     ├── complexity-detect.sh                  # suggests Tier 1 / 2 / 3

@@ -1,260 +1,208 @@
 ---
 name: project-optimizer
-description: Use when the user has a software project and asks for technical improvements - optimization, performance, scalability, architecture review, competitor comparison, or "how to make this better". Auto-tiers from light to deep research based on project complexity. Activates on phrases like "optimize this", "make it faster", "what do competitors do", "production-grade review", "outperform competitors", "deep technical research". Presents all findings directly in the chat - it does not write files into the user's project. Strictly technical scope.
+description: Use when the user has a software product and wants to make it better - technically and/or as a business in its market. Two modes. TECHNICAL mode (optimize, make faster, scale, architecture review, "how do competitors do this", "production-grade review") covers performance, architecture, algorithms, stack, infra. BUSINESS mode ("what's our UVP", "how do we position", "where do we stand in the market", "how do we grow", "how do we differentiate", "how do we expand", "take it to the next level") covers product value, market positioning, competitive standing, growth, and expansion. FULL mode runs both and unifies them. Auto-tiers light to deep. Presents all findings in the chat - never writes files into the user's project.
 ---
 
 # project-optimizer
 
-A tiered, source-cited, bias-checked technical research workflow. Inspects the user's project, researches competitors and prior art, and presents a ranked improvement report directly in the chat.
+A tiered, source-cited, bias-checked research workflow that makes a software product better - technically, as a business in its market, or both. It inspects the product, researches competitors and prior art, and presents a ranked improvement report directly in the chat.
+
+## Modes
+
+- **technical** - performance, architecture, algorithms, stack, scalability, infra, tooling, code quality. (The original scope.)
+- **business** - product value and UVP, market and competitive positioning, where the product stands, growth/optimization levers, and expansion strategy.
+- **full** - both tracks, plus a unified synthesis that shows how technical work enables business goals and how business priorities should sequence technical work.
+
+### Mode detection
+
+Pick the mode from the request:
+- **technical** signals: "optimize", "faster", "scale", "architecture", "refactor", "tech debt", "perf", "how do competitors do this technically".
+- **business** signals: "UVP", "value proposition", "positioning", "where do we stand", "market", "grow", "growth", "go-to-market", "monetize", "pricing", "differentiate", "be the best", "expand", "next level".
+- **full**: the request spans both ("understand my product technically and from a business perspective", "take it to the next level"), or the user says "full".
+
+The user can force a mode: "run project-optimizer in business mode" / "technical mode" / "full mode". When the request clearly spans both tracks, default to **full**. State the detected mode and tier in your first reply.
 
 ## Scope
 
-In scope: performance, architecture, algorithms, data structures, tech-stack choices, scalability, code quality, tooling, infrastructure, build/deploy, observability, testing strategy.
+In scope:
+- **Technical:** performance, architecture, algorithms, data structures, tech-stack choices, scalability, code quality, tooling, infrastructure, build/deploy, observability, testing strategy.
+- **Business:** product value and jobs-to-be-done, unique value proposition, market and competitive positioning, differentiation and moat, growth and optimization (acquisition, activation, retention, monetization), pricing and packaging, and expansion (new segments, geographies, product-line extensions, platform/partnership plays).
 
-Out of scope: UX, visual design, product strategy, marketing, pricing, hiring, fundraising, business model. If the user asks for any of those, say once that this skill is technical-only and continue with the technical analysis.
-
-## Activation rules
-
-Activate when the user:
-- Asks to "optimize", "improve", "make faster", "scale", "harden", "modernize", or "outperform" their project.
-- Asks how competitors or similar tools solve the same problem.
-- Asks "what's the best way to architect / structure / implement X" with an existing project in scope.
-- Shares a repo or directory and asks for technical critique or improvement ideas.
-- Says "production-grade review", "deep technical research", or "thorough analysis".
-
-Do NOT activate for:
-- Single-function bug fixes.
-- Knowledge questions with no project attached.
-- Greenfield design (no existing code to inspect).
-- Style, formatting, or linting questions.
-- Adding a single feature.
-
-Lean toward false negatives. The user can always invoke explicitly.
+Out of scope: visual/UX design execution, legal/accounting/tax mechanics, fundraising deal mechanics, and HR/hiring process. If asked, say once that this skill covers technical and product/market strategy and continue with what is in scope.
 
 ## Output contract (read this first)
 
 This skill presents **everything in the chat**. It does NOT create documents in the user's project.
 
-- Never write `OPTIMIZATION_REPORT.md`, an `optimization/` directory, or any other file into the user's repository or working directory.
+- Never write any report file (`OPTIMIZATION_REPORT.md`, an `optimization/` directory, a strategy doc, etc.) into the user's repository or working directory.
 - Render the full report as structured markdown in the chat response.
-- Benchmark scripts for Tier 3 are shown as copy-pasteable fenced code blocks in the chat, not written to disk.
-- The single exception is the skill's own `MEMORY.md` (see "Memory"), which lives in the skill's install directory, never in the user's project.
-- After delivering the report, you may offer: "I can save any of this to a file if you want - say the word." Only write a file on explicit user request.
+- Tier 3 benchmark scripts are shown as copy-pasteable fenced code blocks in the chat, not written to disk.
+- The single exception is the skill's own `MEMORY.md` (see "Memory"), in the skill's install directory, never in the user's project.
+- After the report, you may offer: "I can save any of this to a file if you want - say the word." Only write a file on explicit request.
 
 ## Memory - learning across sessions
 
-This skill keeps a durable record of what it learns about the user across runs, in `MEMORY.md` inside the skill's own install directory (typically `~/.claude/skills/project-optimizer/MEMORY.md`).
+The skill keeps a durable record of what it learns about the user across runs, in `MEMORY.md` inside the skill's install directory (typically `~/.claude/skills/project-optimizer/MEMORY.md`).
 
-Honest framing: a skill cannot retrain a model. "Learning" here means maintaining a concise, auditable set of observations that make future runs better - user preferences, domain corrections, recurring stack facts, and which sources proved reliable. It is transparent note-keeping, not machine learning, and the user can inspect or edit the file directly.
+Honest framing: a skill cannot retrain a model. "Learning" here means maintaining a concise, auditable set of observations that make future runs better - user preferences, domain and market corrections, recurring product/stack facts, and which sources proved reliable. It is transparent note-keeping, not machine learning, and the user can read or edit the file directly.
 
-**At the START of every run** (after activation, before Phase 1):
-1. If `MEMORY.md` does not exist in the skill directory, create it by copying `references/MEMORY.template.md`.
-2. Read `MEMORY.md`. Apply relevant learnings to this run (for example: the user's team cannot adopt a given language; the user wants effort in ideal-days not dev-weeks; the user has repeatedly rejected microservice recommendations).
-3. State in one line which learnings you applied this run, so it is visible and correctable.
+**At the START of every run** (after activation, before Phase 0/1):
+1. If `MEMORY.md` does not exist, create it by copying `references/MEMORY.template.md`.
+2. Read it. Apply relevant learnings (e.g. the user's target market, monetization model, effort-unit preference, a strategy direction they have rejected).
+3. State in one line which learnings you applied.
 
-**At the END of every run** (after Phase 9):
-1. Append only durable, generalizable learnings: stable user preferences, corrections the user made to your analysis, recurring stack/domain facts about their work, and sources that proved reliable or unreliable.
-2. Do NOT store secrets, credentials, proprietary code, or one-off project specifics. One line per entry.
-3. Prune so each section stays under ~15 entries - drop the oldest or least-useful.
-4. Tell the user in one line what you saved.
+**At the END of every run** (after output):
+1. Append only durable, generalizable learnings: stable preferences, corrections the user made, recurring product/stack/market facts, reliable/unreliable sources.
+2. No secrets, credentials, proprietary code, or one-off details. One line per entry. Keep each section under ~15 entries; prune the oldest.
+3. Tell the user in one line what you saved.
 
-If the user says "forget that" or "don't remember this", delete the relevant entry from `MEMORY.md`.
+If the user says "forget that", delete the relevant entry.
 
-## Bias guards (apply throughout - especially Phases 2, 4, and 7)
+## Bias guards (apply throughout)
 
-The value of this skill is an honest, evidence-ranked answer. Defend it against bias:
+The value of this skill is an honest, evidence-ranked answer. Defend it against bias in both tracks.
 
-- **Hype / recency bias:** never recommend a technology because it is trending or new. Require evidence it fits THIS project's constraints.
-- **Status-quo / incumbency bias:** do not favor the user's current stack out of inertia - and do not recommend a rewrite for novelty. The null recommendation ("the current approach is appropriate here, and here is the evidence") is a valid, expected output when true.
-- **Vendor / conflict of interest:** flag when a source is the vendor of the thing it promotes (e.g. a database company benchmarking its own database). Down-weight it and seek independent corroboration.
-- **Selection / survivorship bias:** success stories over-represent winners. Actively search for disconfirming evidence - "X postmortem", "why we migrated off X", "X limitations at scale", "X regrets".
-- **Anchoring:** build the competitor/alternative list before forming an opinion, not to justify one you already hold.
-- **Confirmation bias:** for every recommendation, write the strongest counter-argument you can. If it survives, keep it. If it doesn't, drop the recommendation.
-- **Auditable ranking:** rank strictly by `(impact x confidence) / (effort x risk)`. Never reorder by preference, familiarity, or vendor. Show the four inputs for each recommendation so the ranking can be checked.
-- **Calibrated confidence:** two independent cross-validated sources beat one high-tier source. State confidence honestly; prefer "unknown" over a confident guess.
+Shared:
+- **Hype / recency bias:** never recommend a technology or a trend (incl. AI-washing) because it is popular. Require evidence it fits THIS product and market.
+- **Vendor / conflict of interest:** flag sources that are the vendor/marketer of the thing they praise (vendor benchmarks, press releases, sponsored reviews). Down-weight; seek independent corroboration.
+- **Confirmation bias:** for every recommendation, write the strongest counter-argument. If it survives, keep it; if not, drop it.
+- **Auditable ranking:** rank strictly by `(impact x confidence) / (effort x risk)`. Never reorder by preference or familiarity. Show the four inputs.
+- **Calibrated confidence:** two independent cross-validated sources beat one. Prefer "unknown" over a confident guess. "No change needed" / "the current position is already strong" is a valid result.
+
+Technical track:
+- **Status-quo bias** (don't favor the current stack out of inertia) and its opposite, **novelty bias** (don't recommend rewrites for fashion).
+- **Selection / survivorship:** hunt for failure stories ("why we moved off X", "X at scale", postmortems), not just success posts.
+
+Business track:
+- **Market-size inflation:** never present a top-down TAM without a bottom-up sanity check. Label every market estimate "estimated" and show the method.
+- **Vanity metrics:** prefer revenue, retention, payback, and margin over downloads/signups/impressions.
+- **Survivorship of unicorns:** a tactic that worked for one breakout is not a law. Note base rates.
+- **Differentiation honesty:** if the UVP is weak, undifferentiated, or a feature not a moat, say so plainly.
 
 ## Tier auto-detection
 
-Run `bash scripts/complexity-detect.sh <project-root>` for a suggested tier. Then apply:
-
+Run `bash scripts/complexity-detect.sh <project-root>` for a suggested tier. Apply:
 - **Tier 1 (Light):** < 2k LOC, single service, no distributed components.
-- **Tier 2 (Standard):** 2k-20k LOC, OR multiple modules, OR a database in the stack.
-- **Tier 3 (Deep):** > 20k LOC, OR microservices, OR distributed-system markers (queues, caches, multiple DBs, k8s/orchestration), OR the user explicitly says "deep", "complex", "thorough", "production-grade", "outperform competitors".
+- **Tier 2 (Standard):** 2k-20k LOC, OR multiple modules, OR a database.
+- **Tier 3 (Deep):** > 20k LOC, OR microservices/distributed markers (queues, caches, multiple DBs, k8s), OR the user says "deep", "thorough", "production-grade", "outperform competitors", "take it to the next level".
 
-User can force a tier: "run project-optimizer in deep mode" -> Tier 3 regardless of LOC.
-
-State the detected tier in the first reply. Tier 3 cannot start research until the Phase 0 interview is answered.
+Tier sets research depth in BOTH tracks. The user can force a tier ("deep mode" -> Tier 3). Tier 3 cannot start research until the Phase 0 interview is answered.
 
 ## Workflow
 
-Load memory (see "Memory") first. Then run phases in order. Phase 0 only fires for Tier 3. Phases 2 and 3 run in parallel.
+Load memory first. Then run Phase 0, then the track(s) for the detected mode, then synthesis and output. Within a track, research phases run in parallel where noted.
 
-### Phase 0 - Constraints interview (Tier 3 only)
+### Phase 0 - Constraints interview (Tier 3, or any tier in business/full mode)
 
-Before any research, ask the user 3-5 sharp questions from `references/interview-questions.md`. Do not proceed until answered. The answers shape every later recommendation.
+Ask 3-6 sharp questions before researching. Use `references/interview-questions.md` for technical and `references/business-interview-questions.md` for business; in full mode pick across both. Do not proceed until answered. If the user says "go without it", proceed but mark dependent recommendations "assumption-based - validate before acting".
 
-If the user says "go without it", proceed but mark every recommendation that depended on a missing answer as "assumption-based - validate before acting".
+---
 
-### Phase 1 - Project Inspection
+## Technical track (mode = technical or full)
 
-1. Run `bash scripts/stack-detect.sh <project-root>` for a stack hint.
-2. Read entry points (main.py, index.ts, cmd/*, app/, src/) and top-level config (package.json, pyproject.toml, Cargo.toml, go.mod, Dockerfile, compose files, infra/, terraform/, k8s/).
-3. Map architecture: entry points, primary data flow, key modules, external services, datastores, queues, caches.
-4. Read enough source to identify real weak points. Examples: N+1 queries, blocking I/O on hot paths, unbounded queues, single-process design, no cache layer, synchronous calls to slow externals, missing indexes, no connection pooling, inefficient algorithms with obvious alternatives. Cite `file:line` for every claim.
-5. For **Tier 3**: decompose the project into 3-8 named, bounded subsystems (e.g. ingestion, storage, query, scheduling, billing). For each: entry points, data flow, key dependencies, current weak points with `file:line`.
-6. Produce a "Project Snapshot" (always) and a "Subsystem Map" (Tier 3) in working notes.
+### Phase T1 - Project inspection
+1. Run `bash scripts/stack-detect.sh <project-root>`.
+2. Read entry points and top-level config (package.json, pyproject.toml, Cargo.toml, go.mod, Dockerfile, compose, infra/, terraform/, k8s/).
+3. Map architecture: entry points, data flow, key modules, external services, datastores, queues, caches.
+4. Read enough source to find real weak points (N+1 queries, blocking I/O on hot paths, unbounded queues, single-process design, no cache layer, missing indexes, no pooling, obviously-improvable algorithms). Cite `file:line` for every claim.
+5. Tier 3: decompose into 3-8 named subsystems, each with entry points, data flow, dependencies, weak points (`file:line`).
+6. Produce a Project Snapshot (and Subsystem Map for Tier 3). Note unknowns explicitly. Do not guess at runtime behavior without evidence.
 
-Do:
-- Read code. Quote `file:line` for every claim about the project.
-- Note unknowns explicitly ("no load-test data available").
+### Phase T2 - Multi-pass competitor research (technical)
+Pass 1 discovery: 5-10 competitors/alternatives (direct + adjacent). Pass 2 deep read: extract numbers, diagrams, trade-offs, regrets; follow citation chains; seek failure stories. Pass 3 cross-validation: each load-bearing finding confirmed by >=2 independent sources or flagged single-source. Marketing pages are not sources. If internals aren't public, say so. See `references/research-sources.md`.
 
-Don't:
-- Guess at runtime behavior without evidence.
-- Write the report yet.
-- Proceed past Phase 1 until the snapshot (and subsystem map for Tier 3) are complete.
+### Phase T3 - Fallback research (parallel with T2)
+arXiv/Scholar (last 5 years unless foundational); top-starred GitHub repos (README, ARCHITECTURE.md, recent issues/PRs); official docs perf/scalability/anti-pattern sections; domain conference talks. Capture URL, one-line summary, why it applies. Deep dial (Tier 3): >=3 independent sources per load-bearing claim, follow >=1 citation chain to primary, record what you searched for but did NOT find.
 
-### Phase 2 - Multi-pass Competitor Research
+### Phase T4 - Source quality scoring
+Tag every cited source S/A/B/C/D per `references/source-quality-rubric.md`. No recommendation rests on D-tier alone. Flag vendor-authored sources.
 
-For Tier 3, run this per subsystem. For Tier 1/2, run once for the whole project.
+### Phase T5 - Quantitative grounding
+Every perf claim gets a number where possible (latency p50/p99, throughput, memory/CPU, Big-O, $/month). No number -> mark "qualitative". No fabricated numbers; show the math for estimates and label "estimated".
 
-**Pass 1 - Discovery:** identify 5-10 competitors / alternatives. Direct = same product category. Adjacent = same underlying technical problem. Web-search for engineering content: blogs, talks, papers, repos. Build a candidate source list. (Anchoring guard: list broadly before judging.)
+### Phase T6 - Failure mode + scale analysis
+Per subsystem (Tier 3) or whole system: what breaks first at 10x / 100x / 1000x, the failure mode, and what competitors do at that scale (with source).
 
-**Pass 2 - Deep read:** for each high-value source, read fully. Extract specifics: numbers, architecture diagrams, trade-offs, things the authors regretted. Follow citations from sources to deeper sources. Deliberately search for failure stories and migrations-away, not only success posts.
+### Phase T7 - Technical recommendations
+Each: what to change (files/modules/libraries), why (cited, with tier + surviving counter-argument), quantitative impact, effort (dev-weeks or the user's preferred unit), infra cost delta, risk, concrete next step (benchmark/spike/library), confidence. Rank by `(impact x confidence) / (effort x risk)` with inputs shown.
 
-**Pass 3 - Cross-validation:** every load-bearing finding must be confirmed by >=2 independent sources or flagged "single-source / unconfirmed". Surface conflicting claims explicitly - do not paper over them. Flag any vendor-authored source.
+### Phase T8 - Technical future-watch
+Emerging (last ~12 months), deprecating, 2-3 year horizon, track-but-don't-act-yet.
 
-Rules:
-- Marketing pages are not sources. Skip anything without technical detail.
-- Do not infer architecture from feature lists.
-- If a competitor's internals are not public, write "internals not public" - never fabricate.
+---
 
-See `references/research-sources.md` for curated starting points per domain.
+## Business track (mode = business or full)
 
-### Phase 3 - Fallback Research (parallel with Phase 2)
+Apply the same citation, source-tiering, and bias discipline as the technical track. Business sources include competitor pricing/product pages (with capture date), independent review sites (G2, Capterra, TrustRadius), app-store and ProductHunt data, public filings and earnings calls, analyst mentions, and credible market reports. See `references/business-research-sources.md`. Label all market estimates "estimated" and show the method.
 
-- arXiv / Google Scholar for relevant techniques. Filter to last 5 years unless the paper is foundational.
-- Top-starred GitHub repos in the problem space. Read README, ARCHITECTURE.md, recent issues, recent PRs.
-- Official docs of the underlying tech - especially perf / scalability / anti-pattern sections.
-- Conference talks. Domain matters: KubeCon and SREcon for infra, QCon and Strange Loop for general, USENIX (ATC, OSDI) and SOSP for systems, NeurIPS / MLSys for ML.
+### Phase B1 - Product and value understanding
+- State in one sentence what the product does and the core job-to-be-done it serves.
+- Identify the target user/segment(s) and the primary use case(s) - from the code, docs, marketing, and the Phase 0 answers.
+- Map the current business model: how value is delivered and (if any) captured (pricing/packaging, free vs paid, monetization).
+- Draft the current UVP hypothesis in one sentence: "For [segment], [product] is the [category] that [key benefit], unlike [alternative], because [differentiator]."
+- Cite evidence for each claim (code feature at `file:line`, a docs/marketing line, or a user/Phase-0 statement). Flag assumptions.
 
-Every finding: capture source URL, one-line summary, why it applies to this project.
+### Phase B2 - Market and competitive positioning
+- Identify 5-10 competitors/alternatives at the BUSINESS level (direct, adjacent, and the "status quo / do nothing" alternative).
+- For each, research: positioning and target segment, pricing/packaging, headline differentiators, apparent strengths and gaps, and traction signals (reviews, funding, hiring, app ranks). Capture sources with dates.
+- Build a positioning map: where this product sits versus competitors on the 2 axes that matter most for this category (name the axes; justify them).
+- Honest verdict: where the product stands today (leader / contender / niche / laggard) and on what evidence.
 
-**Deep-research depth dial (Tier 3):** do not stop at the first plausible answer per subsystem. Aim for at least 3 independent sources per load-bearing claim, follow at least one citation chain to its primary source, and explicitly record what you searched for but could NOT find (negative results are findings). If the user said "exhaustive" or "as deep as possible", widen the competitor set to 7-10 and add a second cross-validation pass.
+### Phase B3 - UVP analysis
+- Compare the product's value prop against each competitor's. Is the differentiator real, defensible, and valued by the target segment - or a feature anyone can copy?
+- Rate UVP strength (strong / moderate / weak) with reasoning, and name the sharpest wedge (the narrow place this product can credibly be the best).
+- Identify the gap to "best in category": what would have to be true (product, performance, positioning) to win the wedge, and then expand from it.
 
-### Phase 4 - Source quality scoring
+### Phase B4 - Growth and optimization levers
+- Across acquisition, activation, retention, monetization, and referral, identify the highest-leverage levers for THIS product and stage.
+- Tie levers to evidence: comparable companies' approaches (cited), the product's own funnel/architecture constraints (note where a technical limit caps a business lever - this is where the two tracks meet), and the Phase 0 goals.
+- Prefer levers grounded in revenue/retention/payback over vanity metrics.
 
-Tag every source you cite with a quality tier per `references/source-quality-rubric.md`:
+### Phase B5 - Expansion strategy
+- Enumerate expansion vectors: new segments, new geographies, adjacent product lines, platform/ecosystem/API plays, and partnerships.
+- For each: the thesis, the evidence it's viable (market signal, competitor precedent, inbound demand), the technical and go-to-market prerequisites, the risk, and a sequencing note (now / next / later).
+- Be explicit about what would have to be proven before committing.
 
-- **S** - primary docs, peer-reviewed papers, official benchmarks.
-- **A** - first-party engineering blogs from companies operating at scale.
-- **B** - talks from named engineers, well-known OSS maintainers.
-- **C** - reputable community sources, well-cited technical articles.
-- **D** - unranked, single contributor, no track record.
+### Phase B6 - Business recommendations
+Each: what to do, why (cited, with source tier + surviving counter-argument), expected impact (revenue/growth/strategic, quantified or "qualitative"), effort, cost, risk, concrete next step (an experiment to run, a positioning change to test, a segment to interview, a metric to instrument), and confidence. Rank by `(impact x confidence) / (effort x risk)` with inputs shown.
 
-A recommendation cannot rest on D-tier sources alone. It needs at least one S/A/B citation or it is flagged "low confidence". Vendor-authored sources are noted as such regardless of tier.
+---
 
-### Phase 5 - Quantitative grounding
+## Synthesis (full mode)
 
-Every performance claim attaches a number where possible:
-- Latency (p50, p99).
-- Throughput (req/s, rows/s, msgs/s).
-- Memory / CPU.
-- Big-O for algorithmic changes.
-- Cost delta ($/month at given scale).
+Merge the two tracks into ONE ranked roadmap. For each item tag `[Technical]`, `[Business]`, or `[Both]`. Show the dependencies that cross tracks: where a technical change unlocks a business lever (e.g. "p99 latency fix is a prerequisite for the enterprise segment"), and where a business priority should sequence technical work. Rank the unified list by `(impact x confidence) / (effort x risk)` with inputs shown. Lead with a single executive summary covering both technical health and market standing.
 
-If no number is available, mark the claim **qualitative** in the report. Do not bury this. Do not fabricate numbers. If you compute an estimate, show the math inline and label it "estimated".
+## Output (in the chat only)
 
-### Phase 6 - Failure mode + scale analysis
+Render the whole report as structured markdown in chat - no files in the user's project. Lead with a TL;DR. Assemble sections by mode using the layout guides in `references/report-templates/` (they describe chat sections, not files):
 
-Per subsystem (Tier 3) or for the system as a whole (Tier 1/2), answer:
-- What breaks first at 10x current load?
-- At 100x?
-- At 1000x?
-- What is the failure mode (slow, errors, data loss, cascading)?
-- What do competitors do at that scale, and which source says so?
+- **technical**: TL;DR, Project Snapshot, Competitive Landscape (tech), Research Findings, Scale Analysis, Recommendations (ranked), Future Watch, Open Questions. (`OPTIMIZATION_REPORT.md` layout; add `bibliography.md` at Tier 2+, full Tier-3 multi-section set at Tier 3.)
+- **business**: TL;DR, Business Snapshot + UVP, Market & Competitive Positioning, Growth Levers, Expansion Roadmap, Strategic Recommendations (ranked), Open Questions, Bibliography. (`business-sections.md` layout.)
+- **full**: a unified Executive Summary, then the technical sections, then the business sections, then the **unified ranked roadmap** from Synthesis, then one combined Bibliography and Open Questions.
 
-### Phase 7 - Synthesis: recommendations
-
-Each recommendation has:
-- **What to change** - specific files / modules / libraries.
-- **Why** - cited sources with quality tier. Include the surviving counter-argument from the bias guard.
-- **Quantitative impact** - numbers from research, or "qualitative" if none.
-- **Effort** - dev-weeks estimate (or the unit the user prefers per MEMORY.md).
-- **Infra cost delta** - $/month, with assumed scale.
-- **Risk** - what could go wrong, migration hazards.
-- **Concrete next step** - benchmark to run, spike to do, library to evaluate.
-- **Confidence** - **high** (cross-validated S/A sources), **medium** (A/B sources), **low** (single-source or D-tier).
-
-Rank by `(impact x confidence) / (effort x risk)`, highest first. Show the four input values so the order is auditable. If the honest conclusion is "no change needed here", say so and stop - do not manufacture recommendations to fill space.
-
-### Phase 8 - Future-watch
-
-- What is emerging in this space in the last ~12 months?
-- What is getting deprecated?
-- Where is the field heading in 2-3 years?
-- What should the team track but not act on yet?
-
-### Phase 9 - Output (in the chat only)
-
-Do not write anything into the user's project. Render the entire report as structured markdown in your chat response, top to bottom. Lead with a 3-5 line TL;DR.
-
-**Tier 1** - post these sections in chat:
-1. TL;DR
-2. Project Snapshot
-3. Competitive Landscape
-4. Research Findings
-5. Scale Analysis
-6. Recommendations (ranked, with audit values)
-7. Future Watch
-8. Open Questions
-
-Use `references/report-templates/OPTIMIZATION_REPORT.md` as the section structure (it is a chat layout, not a file to save).
-
-**Tier 2** - same as Tier 1, plus a **Bibliography** section (structure from `references/report-templates/bibliography.md`).
-
-**Tier 3** - post the full report in chat with H2 sections in this order, using the matching templates in `references/report-templates/` purely as layout guides:
-1. TL;DR + Scoreboard + Top 10 (from `EXECUTIVE_REPORT.md`)
-2. Constraints (Phase 0 answers)
-3. Project Snapshot + Subsystem Map
-4. One deep-dive section per subsystem (from `subsystem.md`)
-5. Competitive Landscape
-6. Research Findings
-7. Failure Modes at 10x / 100x / 1000x (from `failure-modes.md`)
-8. Risk Register (from `risk-register.md`)
-9. Recommendations, ranked across all subsystems (with audit values)
-10. Future Watch (from `future-watch.md`)
-11. Bibliography (from `bibliography.md`)
-12. Open Questions
-
-For each high-impact Tier 3 recommendation, include a runnable benchmark as a fenced code block inline in the chat (adapt `scripts/benchmark-skeleton/`), with clear `# TODO` markers. Do not write the benchmark to disk.
-
-If the report is long, post it in clearly labeled parts within the conversation, but ensure ALL of it reaches the chat. Never truncate or summarize away findings to save space. Cross-reference sections by name ("see the Risk Register section above"), not by file path.
-
-After the report, offer once: "I can save any of this to a file in your project if you want - I won't unless you ask."
-
-Then run the end-of-run Memory step.
+For Tier 3, include at least one runnable benchmark (inline code block, adapted from `scripts/benchmark-skeleton/`) per high-impact technical recommendation, and at least one concrete, measurable experiment per high-impact business recommendation. Post long reports in clearly labeled parts but ensure ALL of it reaches the chat. Cross-reference by section name, not file path. Then run the end-of-run Memory step.
 
 ## Hard rules
 
-- No uncited claims. Ever. Every recommendation cites at least one source from Phase 2 or 3.
-- No fabricated benchmarks or numbers. If a number is not sourced, write "estimated" and show the math.
-- Never write files into the user's project. All findings go in the chat. The only file this skill writes is its own `MEMORY.md` in the skill install directory.
-- If the project is in a domain you are not strong in (niche embedded targets, obscure DSLs, hardware-specific code, etc.), declare it up front in the report. Do not bluff.
-- Apply the bias guards. Show the four ranking inputs so the order is auditable. "No change needed" is a valid result.
-- No padding. Every section earns its place. Drop empty sections rather than filling them.
-- No emojis anywhere in the output.
-- For Tier 3, include at least one runnable benchmark (as an inline code block) per high-impact recommendation.
-- Read MEMORY.md at the start and update it at the end of every run.
+- No uncited claims, technical or business. Every recommendation cites at least one source.
+- No fabricated numbers or benchmarks. Mark unsourced figures "estimated" and show the math. Market sizes are always "estimated" with method.
+- Never write files into the user's project. Findings go in the chat. The only file written is the skill's own `MEMORY.md`.
+- If the product is in a technical domain or a market you are not strong in, declare it up front. Do not bluff.
+- Apply the bias guards. Show the four ranking inputs. "No change needed / position already strong" is a valid result.
+- No padding. Drop empty sections. No emojis in output.
+- Read `MEMORY.md` at the start and update it at the end of every run.
 
 ## Files in this skill
 
 - `SKILL.md` - this file.
 - `references/MEMORY.template.md` - seed for the per-user learning file.
-- `references/research-sources.md` - curated search starting points per domain.
-- `references/source-quality-rubric.md` - exact S/A/B/C/D scoring rules.
-- `references/interview-questions.md` - Phase 0 constraints interview.
-- `references/report-templates/` - chat-section layout guides (not files to save).
+- `references/interview-questions.md` - Phase 0 technical constraints interview.
+- `references/business-interview-questions.md` - Phase 0 business/market interview.
+- `references/research-sources.md` - technical search starting points per domain.
+- `references/business-research-sources.md` - market/competitor intelligence starting points.
+- `references/source-quality-rubric.md` - S/A/B/C/D scoring rules (applies to both tracks).
+- `references/report-templates/` - chat-section layout guides (not files to save), incl. `business-sections.md`.
 - `scripts/stack-detect.sh` - stack and LOC first pass.
 - `scripts/complexity-detect.sh` - LOC, module count, distributed markers -> suggested tier.
-- `scripts/benchmark-skeleton/` - starter templates you adapt into inline benchmark code blocks.
+- `scripts/benchmark-skeleton/` - starters you adapt into inline benchmark code blocks.
 - `README.md` - install and usage notes for humans.
