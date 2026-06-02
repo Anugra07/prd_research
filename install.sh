@@ -38,6 +38,20 @@ esac
 command -v curl >/dev/null 2>&1 || die "curl not found. Install curl and retry."
 command -v tar  >/dev/null 2>&1 || die "tar not found."
 
+# Backups must NOT live inside the skills directory, or Claude Code would
+# load each backup as a duplicate skill. Keep them one level above it.
+SKILLS_DIR="$(dirname "$SKILL_DIR")"
+BACKUP_ROOT="$(dirname "$SKILLS_DIR")/project-optimizer-backups"
+
+# Migrate any old-style backups left inside the skills dir by earlier installer
+# versions, so they stop showing up as duplicate skills.
+for old in "${SKILL_DIR}".backup.*; do
+  [ -e "$old" ] || continue
+  mkdir -p "$BACKUP_ROOT"
+  say "moving stray backup out of skills dir: $(basename "$old")"
+  mv "$old" "$BACKUP_ROOT/" 2>/dev/null || true
+done
+
 # ---- handle existing install (preserve learned MEMORY.md across reinstalls) ----
 PREV_MEMORY=""
 if [ -e "$SKILL_DIR" ]; then
@@ -50,7 +64,8 @@ if [ -e "$SKILL_DIR" ]; then
     say "removing existing install at $SKILL_DIR (SKILL_FORCE=1)"
     rm -rf "$SKILL_DIR"
   else
-    backup="${SKILL_DIR}.backup.$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$BACKUP_ROOT"
+    backup="${BACKUP_ROOT}/$(basename "$SKILL_DIR").backup.$(date +%Y%m%d-%H%M%S)"
     say "existing install found - backing up to: $backup"
     mv "$SKILL_DIR" "$backup"
   fi

@@ -68,7 +68,7 @@ Example: install into a custom path without the dep check:
 SKILL_DIR=~/skills/po SKIP_DEPS=1 curl -fsSL https://raw.githubusercontent.com/Anugra07/prd_research/main/install.sh | bash
 ```
 
-To update later, re-run the same install command (the previous install is auto-backed-up unless `SKILL_FORCE=1`).
+To update later, re-run the same install command. The previous install is backed up (unless `SKILL_FORCE=1`) to `~/.claude/project-optimizer-backups/` - deliberately outside `~/.claude/skills/` so the backup is never loaded as a duplicate skill. Your `MEMORY.md` is carried forward automatically.
 
 ## How to trigger it
 
