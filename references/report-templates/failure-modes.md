@@ -1,6 +1,6 @@
 # Failure Modes at Scale
 
-Per-subsystem analysis: what breaks first as load grows. Drives the "Scale Analysis" section of [EXECUTIVE_REPORT.md](EXECUTIVE_REPORT.md) and informs every recommendation's risk and confidence scoring.
+Chat-output layout - render as a section in the chat response, not a saved file. Per-subsystem analysis of what breaks first as load grows. Feeds the Scoreboard and informs every recommendation's risk and confidence scoring.
 
 ## Current baseline
 

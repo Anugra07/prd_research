@@ -38,8 +38,14 @@ esac
 command -v curl >/dev/null 2>&1 || die "curl not found. Install curl and retry."
 command -v tar  >/dev/null 2>&1 || die "tar not found."
 
-# ---- handle existing install ----
+# ---- handle existing install (preserve learned MEMORY.md across reinstalls) ----
+PREV_MEMORY=""
 if [ -e "$SKILL_DIR" ]; then
+  if [ -f "${SKILL_DIR}/MEMORY.md" ]; then
+    PREV_MEMORY="$(mktemp -t project-optimizer-memory.XXXXXX)"
+    cp "${SKILL_DIR}/MEMORY.md" "$PREV_MEMORY"
+    say "found existing MEMORY.md - will carry your learnings forward"
+  fi
   if [ "$SKILL_FORCE" = "1" ]; then
     say "removing existing install at $SKILL_DIR (SKILL_FORCE=1)"
     rm -rf "$SKILL_DIR"
@@ -52,7 +58,7 @@ fi
 
 # ---- download ----
 tmpdir=$(mktemp -d -t project-optimizer-install.XXXXXX)
-trap 'rm -rf "$tmpdir"' EXIT
+trap 'rm -rf "$tmpdir" "$PREV_MEMORY"' EXIT
 
 url="https://codeload.github.com/${REPO}/tar.gz/refs/heads/${SKILL_REF}"
 say "downloading: $url"
@@ -76,6 +82,13 @@ chmod +x \
   "$SKILL_DIR"/scripts/benchmark-skeleton/*.py \
   "$SKILL_DIR"/scripts/benchmark-skeleton/*.js \
   2>/dev/null || true
+
+# ---- restore preserved memory ----
+if [ -n "$PREV_MEMORY" ] && [ -f "$PREV_MEMORY" ]; then
+  cp "$PREV_MEMORY" "${SKILL_DIR}/MEMORY.md"
+  rm -f "$PREV_MEMORY"
+  say "restored your MEMORY.md (learnings carried forward)"
+fi
 
 # ---- verify ----
 [ -f "${SKILL_DIR}/SKILL.md" ] || die "install looks incomplete - SKILL.md missing at $SKILL_DIR"

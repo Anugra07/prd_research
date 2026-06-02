@@ -29,3 +29,7 @@ results/
 # Local notes that shouldn't ship with the skill
 NOTES.local.md
 scratch/
+
+# Per-user learning file - created at runtime from references/MEMORY.template.md.
+# Kept local so it never gets committed or clobbered by updates.
+/MEMORY.md

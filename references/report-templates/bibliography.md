@@ -1,6 +1,6 @@
 # Bibliography
 
-Every source cited anywhere in this report, with quality tier and relevance note.
+Chat-output layout - render as a section in the chat response, not a saved file. Every source cited anywhere in the report, with quality tier and relevance note.
 
 ## Tier legend
 
@@ -10,7 +10,7 @@ Every source cited anywhere in this report, with quality tier and relevance note
 - **C** - Reputable community sources, well-cited articles.
 - **D** - Unranked / single contributor / no track record.
 
-See [source-quality-rubric.md](../../references/source-quality-rubric.md) for full tiering rules. (For Tier 3 output, copy the rubric inline if the user wants the report to stand alone.)
+Full tiering rules are in the skill's `references/source-quality-rubric.md`. Flag any vendor-authored source in the relevance column regardless of tier.
 
 ## Sources
 

@@ -1,6 +1,6 @@
 # Future Watch
 
-Where the field is heading. What to track without necessarily acting on yet. Updated yearly is reasonable - the recommendations in the main report are about now; this doc is about next.
+Chat-output layout - render as a section in the chat response, not a saved file. Where the field is heading and what to track without acting on yet. The recommendations earlier in the report are about now; this section is about next.
 
 ## Time horizon
 

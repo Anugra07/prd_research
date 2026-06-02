@@ -1,6 +1,6 @@
 # Risk Register
 
-All risks surfaced across all recommendations, ranked by `severity x likelihood`. Each entry links to the recommendation(s) it affects.
+Chat-output layout - render as a section in the chat response, not a saved file. All risks surfaced across all recommendations, ranked by `severity x likelihood`. Each entry names the recommendation(s) it affects.
 
 ## Scoring
 
